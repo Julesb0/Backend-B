@@ -1,20 +1,15 @@
-# Usar imagen base de Eclipse Temurin (OpenJDK 17)
-FROM eclipse-temurin:17-jdk-jammy as build
+# Usar imagen base de Eclipse Temurin (OpenJDK 17) con Maven
+FROM maven:3.9-eclipse-temurin-17 as build
 
 # Establecer directorio de trabajo
 WORKDIR /app
 
-# Copiar archivos de configuración de Maven y wrapper
+# Copiar archivos de configuración de Maven
 COPY pom.xml .
-COPY mvnw .
-COPY .mvn ./.mvn
 COPY src ./src
 
-# Hacer ejecutable el wrapper de Maven
-RUN chmod +x mvnw
-
 # Construir el proyecto con Maven
-RUN ./mvnw clean package -DskipTests
+RUN mvn clean package -DskipTests
 
 # Segunda etapa para la imagen final
 FROM eclipse-temurin:17-jre-jammy
