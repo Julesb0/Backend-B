@@ -1,5 +1,5 @@
-# Usar imagen base de OpenJDK 17
-FROM openjdk:17-jdk-slim
+# Usar imagen base de Eclipse Temurin (OpenJDK 17)
+FROM eclipse-temurin:17-jre-jammy
 
 # Establecer directorio de trabajo
 WORKDIR /app
@@ -8,7 +8,7 @@ WORKDIR /app
 COPY target/supabase-auth-java-0.0.1-SNAPSHOT.jar app.jar
 
 # Exponer el puerto (Render asigna el puerto dinámicamente)
-EXPOSE 8080
+EXPOSE 8081
 
 # Variables de entorno para producción
 ENV JAVA_OPTS="-Xmx512m -Xms256m"
