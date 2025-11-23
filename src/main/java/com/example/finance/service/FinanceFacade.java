@@ -211,4 +211,20 @@ public class FinanceFacade {
     recs.add(new com.example.finance.patterns.decorator.PotentialSavingsDecorator(r).build());
     return recs;
   }
+
+  public boolean deleteTransaction(String kind, String id) {
+    if (kind == null || id == null || id.isBlank()) return false;
+    String k = kind.toLowerCase();
+    if (k.equals("ingreso")) return incomeRepo.deleteById(id);
+    if (k.equals("gasto")) return expenseRepo.deleteById(id);
+    if (k.equals("microgasto")) return microRepo.deleteById(id);
+    return false;
+  }
+
+  public boolean deleteAnyTransaction(String id) {
+    if (id == null || id.isBlank()) return false;
+    if (incomeRepo.deleteById(id)) return true;
+    if (expenseRepo.deleteById(id)) return true;
+    return microRepo.deleteById(id);
+  }
 }

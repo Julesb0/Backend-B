@@ -19,7 +19,7 @@ public class NetworkingFacade {
     this.connectionService = new ConnectionService(props);
   }
 
-  public Profile createOrUpdateProfile(String userId, String displayName, String bio, String location, String company, String role, String linkedinUrl, String website, boolean isPublic) {
+  public Profile createOrUpdateProfile(String userId, String displayName, String bio, String location, String company, String role, String linkedinUrl, String website, boolean isPublic, java.util.List<String> skills) {
     Profile profile = profileService.getProfileByUserId(userId);
     if (profile == null) {
       profile = new Profile(userId, displayName);
@@ -32,6 +32,7 @@ public class NetworkingFacade {
     profile.setLinkedinUrl(linkedinUrl);
     profile.setWebsite(website);
     profile.setPublic(isPublic);
+    profile.setSkills(skills);
     
     if (profile.getId() == null) {
       return profileService.createProfile(userId, displayName);

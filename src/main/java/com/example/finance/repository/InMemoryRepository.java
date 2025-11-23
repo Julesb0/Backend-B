@@ -26,5 +26,10 @@ public class InMemoryRepository<T extends Transaction> implements TransactionRep
   public synchronized List<T> listByUserAndMonth(String userId, int year, int month) {
     return store.stream().filter(x -> userId.equals(x.getUserId()) && x.getDate().getYear() == year && x.getDate().getMonthValue() == month).collect(Collectors.toList());
   }
+
+  @Override
+  public synchronized boolean deleteById(String id) {
+    return store.removeIf(x -> id.equals(x.getId()));
+  }
 }
 

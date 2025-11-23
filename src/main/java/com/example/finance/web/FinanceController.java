@@ -74,6 +74,17 @@ public class FinanceController {
     return ResponseEntity.ok(res);
   }
 
+  @DeleteMapping("/transactions/{id}")
+  public ResponseEntity<Void> delete(@RequestHeader(value = "Authorization", required = false) String auth,
+                                     @PathVariable String id,
+                                     @RequestParam(required = false) String kind) {
+    guard.require(auth);
+    boolean ok = (kind == null || kind.isBlank()) ? facade.deleteAnyTransaction(id) : facade.deleteTransaction(kind, id);
+    if (!ok) ok = facade.deleteAnyTransaction(id);
+    if (ok) return ResponseEntity.noContent().build();
+    return ResponseEntity.notFound().build();
+  }
+
   @GetMapping("/nimai")
   public ResponseEntity<java.util.List<String>> nimAi(@RequestHeader(value = "Authorization", required = false) String auth,
                                                       @RequestParam String userEmail,

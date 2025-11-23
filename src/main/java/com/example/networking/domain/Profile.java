@@ -13,6 +13,7 @@ public class Profile {
   private boolean isPublic;
   private String createdAt;
   private String updatedAt;
+  private java.util.List<String> skills;
 
   public Profile() {}
 
@@ -46,4 +47,6 @@ public class Profile {
   public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
   public String getUpdatedAt() { return updatedAt; }
   public void setUpdatedAt(String updatedAt) { this.updatedAt = updatedAt; }
+  public java.util.List<String> getSkills() { return skills; }
+  public void setSkills(java.util.List<String> skills) { this.skills = skills; }
 }

@@ -37,6 +37,8 @@ public class AuthController {
   public ResponseEntity<String> listUsers(@RequestParam(name = "page", defaultValue = "1") int page,
                                           @RequestParam(name = "perPage", defaultValue = "50") int perPage) {
     var result = facade.listUsers(page, perPage);
-    return ResponseEntity.status(result.getStatus()).body(result.getBody());
+    return ResponseEntity.status(result.getStatus())
+      .header("Content-Type", "application/json")
+      .body(result.getBody());
   }
 }

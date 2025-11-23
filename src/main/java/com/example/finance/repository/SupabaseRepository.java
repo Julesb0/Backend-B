@@ -53,9 +53,10 @@ public class SupabaseRepository<T extends Transaction> implements TransactionRep
         }
         return t;
       }
-      throw new RuntimeException("Supabase save failed: " + res.body());
+      throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "Supabase save failed: " + res.body());
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      if (e instanceof org.springframework.web.server.ResponseStatusException) throw (org.springframework.web.server.ResponseStatusException) e;
+      throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, e.getMessage());
     }
   }
 
@@ -67,7 +68,8 @@ public class SupabaseRepository<T extends Transaction> implements TransactionRep
   @Override
   public List<T> listByUserAndMonth(String userId, int year, int month) {
     String from = String.format("%04d-%02d-01", year, month);
-    String to = String.format("%04d-%02d-28", year, month);
+    java.time.YearMonth ym = java.time.YearMonth.of(year, month);
+    String to = String.format("%04d-%02d-%02d", year, month, ym.lengthOfMonth());
     return query(userColumn + "=eq." + encode(userId) + "&date=gte." + from + "&date=lte." + to);
   }
 
@@ -143,6 +145,23 @@ public class SupabaseRepository<T extends Transaction> implements TransactionRep
     }
     if (t instanceof MicroExpense m) {
       if (n.get("daily_limit") != null) m.setDailyLimit(n.get("daily_limit").asInt());
+    }
+  }
+
+  @Override
+  public boolean deleteById(String id) {
+    try {
+      HttpRequest req = HttpRequest.newBuilder()
+        .uri(URI.create(props.getUrl() + "/rest/v1/" + table + "?id=eq." + encode(id)))
+        .header("apikey", apiKey())
+        .header("Authorization", "Bearer " + apiKey())
+        .header("Prefer", "return=minimal")
+        .DELETE()
+        .build();
+      HttpResponse<String> res = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
+      return res.statusCode() >= 200 && res.statusCode() < 300;
+    } catch (Exception e) {
+      return false;
     }
   }
 }

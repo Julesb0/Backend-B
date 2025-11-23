@@ -25,7 +25,7 @@ public class ConnectionRepository {
 
   public Connection save(Connection connection) {
     try {
-      String json = toJson(connection);
+      String json = toSupabaseJson(connection);
       HttpRequest req = HttpRequest.newBuilder()
         .uri(URI.create(props.getUrl() + "/rest/v1/" + table))
         .header("Content-Type", "application/json")
@@ -42,26 +42,27 @@ public class ConnectionRepository {
         }
         return connection;
       }
-      throw new RuntimeException("Supabase save failed: " + res.body());
+      throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "Supabase save failed: " + res.body());
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      if (e instanceof org.springframework.web.server.ResponseStatusException) throw (org.springframework.web.server.ResponseStatusException) e;
+      throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, e.getMessage());
     }
   }
 
   public List<Connection> findByUserId(String userId) {
-    return query("requester_id=eq." + encode(userId) + "&addressee_id=eq." + encode(userId));
+    return query("or=(requester_user_id.eq." + encode(userId) + ",target_user_id.eq." + encode(userId) + ")");
   }
 
   public List<Connection> findByRequesterId(String requesterId) {
-    return query("requester_id=eq." + encode(requesterId));
+    return query("requester_user_id=eq." + encode(requesterId));
   }
 
   public List<Connection> findByAddresseeId(String addresseeId) {
-    return query("addressee_id=eq." + encode(addresseeId));
+    return query("target_user_id=eq." + encode(addresseeId));
   }
 
   public Connection findByUsers(String requesterId, String addresseeId) {
-    List<Connection> connections = query("requester_id=eq." + encode(requesterId) + "&addressee_id=eq." + encode(addresseeId));
+    List<Connection> connections = query("requester_user_id=eq." + encode(requesterId) + "&target_user_id=eq." + encode(addresseeId));
     return connections.isEmpty() ? null : connections.get(0);
   }
 
@@ -84,9 +85,10 @@ public class ConnectionRepository {
         }
         return null;
       }
-      throw new RuntimeException("Supabase update failed: " + res.body());
+      throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "Supabase update failed: " + res.body());
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      if (e instanceof org.springframework.web.server.ResponseStatusException) throw (org.springframework.web.server.ResponseStatusException) e;
+      throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, e.getMessage());
     }
   }
 
@@ -108,21 +110,22 @@ public class ConnectionRepository {
         }
         return list;
       }
-      throw new RuntimeException("Supabase query failed: " + res.body());
+      throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "Supabase query failed: " + res.body());
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      if (e instanceof org.springframework.web.server.ResponseStatusException) throw (org.springframework.web.server.ResponseStatusException) e;
+      throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, e.getMessage());
     }
   }
 
-  private String toJson(Connection c) {
+  private String toSupabaseJson(Connection c) {
     StringBuilder sb = new StringBuilder();
     sb.append("{");
     if (c.getId() == null || c.getId().isEmpty()) {
       c.setId(java.util.UUID.randomUUID().toString());
     }
     sb.append("\"id\":\"").append(c.getId()).append("\",");
-    sb.append("\"requester_id\":\"").append(escape(c.getRequesterId())).append("\",");
-    sb.append("\"addressee_id\":\"").append(escape(c.getAddresseeId())).append("\",");
+    sb.append("\"requester_user_id\":\"").append(escape(c.getRequesterId())).append("\",");
+    sb.append("\"target_user_id\":\"").append(escape(c.getAddresseeId())).append("\",");
     sb.append("\"status\":\"").append(escape(c.getStatus())).append("\",");
     if (c.getMessage() != null) sb.append("\"message\":\"").append(escape(c.getMessage())).append("\",");
     sb.append("\"created_at\":\"").append(java.time.Instant.now().toString()).append("\",");
@@ -131,11 +134,12 @@ public class ConnectionRepository {
     return sb.toString();
   }
 
+
   private Connection fromJson(JsonNode n) {
     Connection c = new Connection();
     if (n.get("id") != null) c.setId(n.get("id").asText());
-    if (n.get("requester_id") != null) c.setRequesterId(n.get("requester_id").asText());
-    if (n.get("addressee_id") != null) c.setAddresseeId(n.get("addressee_id").asText());
+    if (n.get("requester_user_id") != null) c.setRequesterId(n.get("requester_user_id").asText());
+    if (n.get("target_user_id") != null) c.setAddresseeId(n.get("target_user_id").asText());
     if (n.get("status") != null) c.setStatus(n.get("status").asText());
     if (n.get("message") != null) c.setMessage(n.get("message").asText());
     if (n.get("created_at") != null) c.setCreatedAt(n.get("created_at").asText());
